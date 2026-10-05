@@ -5,7 +5,7 @@
       "root": "backend",
       "framework": "flask",
       "entrypoint": "app:app",
-      "buildCommand": "pip install -r ../requirements.txt",
+      "installCommand": "pip install -r requirements.txt",
       "functions": {
         "app.py": {
           "maxDuration": 60
@@ -15,12 +15,16 @@
     "frontend": {
       "root": "frontend",
       "framework": "vite",
-      "outputDirectory": "dist"
+      "outputDirectory": "dist",
+      "rewrites": [
+        { "source": "/assets/:path*", "destination": "/assets/:path*" },
+        { "source": "/:path*", "destination": "/index.html" }
+      ]
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": { "service": "glow-haven-api" } },
-    { "source": "/(.*)", "destination": { "service": "frontend" } }
+    { "source": "/api/:path*", "destination": { "service": "glow-haven-api" } },
+    { "source": "/:path*", "destination": { "service": "frontend" } }
   ],
   "headers": [
     {

@@ -101,6 +101,17 @@ def create_app():
 
     def health():
 
+        if os.getenv("VERCEL") and not os.getenv("DATABASE_URI", "").strip():
+            return jsonify(
+                {
+                    "status": "degraded",
+                    "name": "Glow Haven API",
+                    "database": Config.database_backend(),
+                    "database_connected": False,
+                    "hint": "Set DATABASE_URI in Vercel project environment variables.",
+                }
+            ), 503
+
         db_ok = False
 
         try:
