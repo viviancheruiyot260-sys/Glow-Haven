@@ -1,10 +1,27 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --prefix frontend",
-  "buildCommand": "npm run build --prefix frontend",
-  "outputDirectory": "frontend/dist",
-  "framework": null,
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }],
+  "services": {
+    "glow-haven-api": {
+      "root": "backend",
+      "framework": "flask",
+      "entrypoint": "app:app",
+      "buildCommand": "pip install -r ../requirements.txt",
+      "functions": {
+        "app.py": {
+          "maxDuration": 60
+        }
+      }
+    },
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite",
+      "outputDirectory": "dist"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "glow-haven-api" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

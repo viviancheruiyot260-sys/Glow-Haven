@@ -1,76 +1,71 @@
-# Deploy Glow Haven on Vercel
+# Deploy Glow Haven on Vercel (Services)
 
-Vercel hosts the **React (Vite) storefront**. The **Flask API** must run on a separate Python host (Render, Railway, Fly.io, etc.) because Vercel does not run long-lived Flask apps or SQLite files.
+This repo uses Vercel **Services**: one project, two services, one domain.
+
+| Service | Role | Public? |
+|---------|------|---------|
+| `frontend` | Vite React storefront (`frontend/dist`) | Yes — `/` and client routes |
+| `glow-haven-api` | Flask API (`backend/app.py`) | Yes — only via `/api/*` rewrites |
+
+Routing is defined in root **`vercel.json`**. The API service is **internal by default**; top-level rewrites expose it at `/api/...`.
 
 ## Architecture
 
 ```text
-Browser → Vercel (static SPA)  →  HTTPS  →  API host (Flask + MySQL)
-              VITE_API_URL
+Browser → https://your-app.vercel.app
+            ├─ /api/*     → glow-haven-api (Flask)
+            └─ /*         → frontend (static SPA)
 ```
 
-## 1. Deploy the API first
+The browser calls **same-origin** `/api/...` (leave **`VITE_API_URL` unset** on Vercel). No service **bindings** are required — the React app runs in the browser, not in a serverless function.
 
-### Render (example)
+## 1. Import on Vercel
 
-1. Push this repo to GitHub.
-2. [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint** and connect the repo, or create a **Web Service** manually:
-   - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn --chdir backend -w 2 -b 0.0.0.0:$PORT wsgi:application`
-3. Add a **MySQL** database (Render, PlanetScale, Railway, etc.) and set environment variables:
+1. [vercel.com](https://vercel.com) → **New Project** → import `viviancheruiyot260-sys/Glow-Haven`.
+2. Choose **Import multi-service project** (or set **Framework Preset** to **Services** in project settings).
+3. Root directory: **`./`** (repo root — `vercel.json` lives here).
+4. Deploy.
 
-| Variable | Required | Notes |
-|----------|----------|--------|
-| `DATABASE_URI` | Yes | e.g. `mysql+pymysql://user:pass@host:3306/glow_haven?charset=utf8mb4` |
-| `SECRET_KEY` | Yes | Random string |
-| `JWT_SECRET_KEY` | Yes | Random string |
-| `CORS_ORIGINS` | Yes | Your Vercel URL(s), comma-separated, e.g. `https://glow-haven.vercel.app` |
-| `MPESA_*` | For real STK | See [MPESA_SANDBOX.md](./MPESA_SANDBOX.md); `MPESA_CALLBACK_URL` must be `https://YOUR-API/api/payments/mpesa/callback` |
+## 2. Environment variables (project settings)
 
-4. Open `https://YOUR-API.onrender.com/api/health` — expect `"database_connected": true`.
+Set these for **Production** (and Preview if you use it):
 
-Do **not** use `USE_SQLITE=1` in production on ephemeral disks; use MySQL (or another managed DB).
+| Variable | Service | Required | Notes |
+|----------|---------|----------|--------|
+| `DATABASE_URI` | API | **Yes** | MySQL (or compatible). Do **not** rely on `USE_SQLITE=1` on Vercel — the filesystem is ephemeral. |
+| `SECRET_KEY` | API | **Yes** | Random string |
+| `JWT_SECRET_KEY` | API | **Yes** | Random string |
+| `MPESA_*` | API | For STK | See [MPESA_SANDBOX.md](./MPESA_SANDBOX.md) |
+| `MPESA_CALLBACK_URL` | API | For STK | `https://YOUR-VERCEL-DOMAIN/api/payments/mpesa/callback` |
+| `VITE_API_URL` | Frontend | **Leave empty** | Same-origin `/api` routing; only set if API is hosted elsewhere |
 
-## 2. Deploy the frontend on Vercel
-
-1. [vercel.com](https://vercel.com) → **Add New Project** → import your GitHub repo.
-2. Vercel should detect settings from the root **`vercel.json`**:
-   - **Install:** `npm install --prefix frontend`
-   - **Build:** `npm run build --prefix frontend`
-   - **Output:** `frontend/dist`
-3. **Environment variables** (Project → Settings → Environment Variables):
-
-| Name | Value | Environments |
-|------|--------|--------------|
-| `VITE_API_URL` | `https://YOUR-API.onrender.com` (no trailing slash) | Production, Preview |
-
-4. Deploy. Visit your `*.vercel.app` URL — shop and featured products should load.
+`CORS_ORIGINS` can stay `*` or list your Vercel URL when using same-origin `/api` (no CORS preflight for simple same-origin GETs; credentialed cross-origin not used).
 
 ## 3. Post-deploy checks
 
-- [ ] Home page loads products (no “Request failed”).
-- [ ] Sign up / log in works (JWT + CORS).
-- [ ] `CORS_ORIGINS` includes the exact Vercel origin (scheme + host, no path).
-- [ ] M-Pesa callback URL points at the **API** host, not Vercel.
+- [ ] `https://YOUR-APP.vercel.app/api/health` → `"database_connected": true`
+- [ ] Home page loads featured products
+- [ ] Sign up / log in / cart / checkout
+- [ ] M-Pesa callback URL uses your **Vercel** domain + `/api/payments/mpesa/callback`
 
-## 4. Custom domain (optional)
+## 4. Local development
 
-- Add the domain in Vercel for the storefront.
-- Add the same origin to `CORS_ORIGINS` on the API and redeploy the API.
+| | Command |
+|---|--------|
+| API | `cd backend && python app.py` |
+| UI | `cd frontend && npm run dev` (proxies `/api` → `:5000`) |
 
-## Local vs production
+Optional: `vercel dev` at repo root runs all services together (requires [Vercel CLI](https://vercel.com/docs/cli)).
 
-| | Local | Vercel |
-|---|--------|--------|
-| UI | `npm run dev` (5173) | Built static files |
-| API | `python app.py` (5000) | External URL in `VITE_API_URL` |
-| `/api` proxy | Vite dev proxy | Browser calls API directly |
+## Alternative: API on Render
+
+You can still host only the **frontend** on Vercel (legacy single-service build) and point `VITE_API_URL` at Render — see [render.yaml](../render.yaml). The committed **`vercel.json` services** layout is the recommended single-domain setup.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| “Request failed” / network error | Set `VITE_API_URL` and redeploy Vercel; ensure API is up. |
-| CORS error in browser console | Add your Vercel URL to `CORS_ORIGINS` on the API. |
-| 404 on refresh for `/products/1` | Root `vercel.json` SPA rewrite should be committed; redeploy. |
-| Build fails on Vercel | Use Node 18+ (see `frontend/package.json` `engines`). |
+| “Import multi-service… needs vercel.json” | Pull latest `main`; ensure `services` key exists. |
+| “Request failed” on home | Check `/api/health`; set `DATABASE_URI`; redeploy API service. |
+| 404 on `/products/1` refresh | Redeploy; confirm frontend service + catch-all rewrite. |
+| Build: Flask not found | `entrypoint` is `app:app` in `backend/`; see `backend/pyproject.toml`. |
