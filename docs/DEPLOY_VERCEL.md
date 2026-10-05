@@ -11,6 +11,8 @@ Confirmed architecture (multi-service, single domain):
 
 Configuration lives in root [`vercel.json`](../vercel.json).
 
+> **Note:** Do not list `backend/` in `.vercelignore` — the `glow-haven-api` service needs those files at build time.
+
 ## Import checklist
 
 1. GitHub repo: `viviancheruiyot260-sys/Glow-Haven`, branch `main`.

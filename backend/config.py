@@ -24,7 +24,7 @@ def _build_mysql_uri() -> str:
 
 
 def _resolve_database_uri() -> str:
-    explicit_uri = os.getenv("DATABASE_URI")
+    explicit_uri = os.getenv("DATABASE_URI", "").strip()
     if explicit_uri:
         return explicit_uri
     if _env_bool("USE_SQLITE", "0"):
