@@ -1,0 +1,8 @@
+.env
+glow_haven.db
+venv/
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
