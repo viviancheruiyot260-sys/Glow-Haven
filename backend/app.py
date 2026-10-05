@@ -1,3 +1,4 @@
+import os
 import sys
 
 from pathlib import Path
@@ -70,7 +71,7 @@ def create_app():
 
 
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": Config.CORS_ORIGINS}})
 
     db.init_app(app)
 
@@ -219,6 +220,8 @@ if __name__ == "__main__":
 
     print(f"{ok_prefix} Glow Haven backend running")
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    debug = os.getenv("FLASK_DEBUG", "1").lower() in ("1", "true", "yes")
+    port = int(os.getenv("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port, debug=debug)
 
 

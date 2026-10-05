@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const rawBase = import.meta.env.VITE_API_URL || "";
+const API_BASE = rawBase.replace(/\/$/, "");
+const IS_DEV = import.meta.env.DEV;
 
 export function getToken() {
   return localStorage.getItem("gh_token");
@@ -24,10 +26,27 @@ export async function api(path, options = {}) {
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  } catch {
+    throw new Error(
+      IS_DEV
+        ? "Cannot reach the API. Start the backend: cd backend && python app.py"
+        : "Cannot reach the API. Check VITE_API_URL on Vercel and that the API host is running."
+    );
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error || data.msg || data.message || "Request failed");
+    const serverMsg = data.error || data.msg || data.message;
+    if (!serverMsg && response.status >= 502) {
+      throw new Error(
+        IS_DEV
+          ? "API server is not running. In a second terminal: cd backend && python app.py"
+          : "API server unavailable. Verify your deployed backend and VITE_API_URL."
+      );
+    }
+    throw new Error(serverMsg || "Request failed");
   }
   return data;
 }

@@ -1,0 +1,11 @@
+backend/
+venv/
+.env
+.env.*
+!.env.example
+glow_haven.db
+__pycache__/
+*.pyc
+docs/
+assets/
+Glow-Haven/

@@ -87,6 +87,14 @@ python app.py
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000) after building the frontend.
 
+## Deploy on Vercel
+
+The storefront deploys to **Vercel**; the Flask API deploys separately (see [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)).
+
+1. Deploy the API (e.g. Render using `render.yaml` + MySQL + `CORS_ORIGINS`).
+2. Import the repo on Vercel — root **`vercel.json`** configures the Vite build.
+3. Set **`VITE_API_URL`** to your public API URL (no trailing slash) and redeploy.
+
 ## Project structure
 
 ```text

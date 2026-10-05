@@ -58,6 +58,9 @@ class Config:
     MPESA_PASSKEY = os.getenv("MPESA_PASSKEY", "").strip()
     MPESA_CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL", "").strip()
 
+    _cors_raw = os.getenv("CORS_ORIGINS", "*").strip()
+    CORS_ORIGINS = [o.strip() for o in _cors_raw.split(",") if o.strip()] or ["*"]
+
     @classmethod
     def database_backend(cls) -> str:
         if cls.USE_SQLITE or cls.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
