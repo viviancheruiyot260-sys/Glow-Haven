@@ -3,14 +3,20 @@ import { Link } from "react-router-dom";
 import { api } from "../api";
 import ProductCard from "../components/ProductCard";
 
+const CATEGORY_LINKS = ["Skincare", "Makeup", "Haircare", "Fragrances", "Accessories"];
+
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(CATEGORY_LINKS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     api("/api/products?sort=newest")
-      .then((data) => setProducts(data.products.slice(0, 4)))
+      .then((data) => {
+        setProducts(data.products.slice(0, 4));
+        if (data.categories?.length) setCategories(data.categories);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -22,7 +28,7 @@ export default function Home() {
 
       <div className="container">
         <section className="hero">
-          <div className="hero-copy">
+          <div className="hero-copy animate-fade-up">
             <p className="hero-eyebrow">Your beauty. Your glow.</p>
             <h1>
               Discover skincare, makeup &amp; more that <em>love you back</em>.
@@ -31,17 +37,36 @@ export default function Home() {
               Curated beauty essentials for every routine — browse, filter, and checkout securely
               with M-Pesa.
             </p>
+
+            <div className="category-pills" aria-label="Shop by category">
+              {categories.map((cat) => (
+                <Link
+                  key={cat}
+                  className="category-pill"
+                  to={`/products?category=${encodeURIComponent(cat)}`}
+                >
+                  {cat}
+                </Link>
+              ))}
+            </div>
+
             <div className="hero-actions">
               <Link className="btn btn-primary" to="/products">
                 Shop the collection
               </Link>
               <Link className="btn btn-ghost" to="/products">
-                Browse categories
+                Browse all
               </Link>
             </div>
+
+            <ul className="hero-trust">
+              <li>M-Pesa checkout</li>
+              <li>Curated brands</li>
+              <li>Secure account</li>
+            </ul>
           </div>
 
-          <aside className="hero-card">
+          <aside className="hero-card animate-fade-up animate-delay-1">
             <div className="hero-card-header">
               <div>
                 <h2 className="hero-card-title">Featured picks</h2>
@@ -62,8 +87,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="product-grid product-grid-featured">
-                {products.map((p) => (
-                  <ProductCard key={p.id} product={p} compact />
+                {products.map((p, index) => (
+                  <ProductCard key={p.id} product={p} compact eagerImage={index < 2} />
                 ))}
               </div>
             )}

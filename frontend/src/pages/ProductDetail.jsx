@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, formatKes } from "../api";
 import Alert from "../components/Alert";
+import ProductImage from "../components/ProductImage";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProductDetail() {
@@ -53,7 +54,7 @@ export default function ProductDetail() {
       <Alert type="success" message={success} />
       <Alert type="error" message={error && product ? error : ""} />
       <div className="product-detail">
-        <img src={product.image_url} alt={product.name} />
+        <ProductImage src={product.image_url} alt={product.name} eager className="product-detail-img" />
         <div>
           <span className="badge">{product.category}</span>
           <h1 className="section-title">{product.name}</h1>

@@ -28,7 +28,7 @@ SAMPLE_PRODUCTS = [
         "description": "Deep-conditioning mask with argan oil for dry, damaged hair.",
         "price": Decimal("1899.00"),
         "category": "Haircare",
-        "image_url": "https://images.unsplash.com/photo-1527799820374-dcf8d9a4e388?w=600&auto=format&fit=crop",
+        "image_url": "https://images.pexels.com/photos/3785147/pexels-photo-3785147.jpeg?auto=compress&cs=tinysrgb&w=600",
         "stock": 30,
     },
     {
@@ -60,7 +60,7 @@ SAMPLE_PRODUCTS = [
         "description": "Translucent setting powder that blurs pores and controls shine.",
         "price": Decimal("1599.00"),
         "category": "Makeup",
-        "image_url": "https://images.unsplash.com/photo-1596462502278-27bfdd403348?w=600&auto=format&fit=crop",
+        "image_url": "https://images.pexels.com/photos/6634644/pexels-photo-6634644.jpeg?auto=compress&cs=tinysrgb&w=600",
         "stock": 35,
     },
     {
@@ -68,7 +68,7 @@ SAMPLE_PRODUCTS = [
         "description": "Defines curls and coils without crunch for soft, bouncy hair.",
         "price": Decimal("1399.00"),
         "category": "Haircare",
-        "image_url": "https://images.unsplash.com/photo-1608248543801-ba977795e405?w=600&auto=format&fit=crop",
+        "image_url": "https://images.pexels.com/photos/4465124/pexels-photo-4465124.jpeg?auto=compress&cs=tinysrgb&w=600",
         "stock": 28,
     },
 ]
@@ -104,3 +104,17 @@ def seed_products_if_empty():
             )
         )
     db.session.commit()
+
+
+PRODUCT_IMAGE_URL_FIXES = {item["name"]: item["image_url"] for item in SAMPLE_PRODUCTS}
+
+
+def sync_product_image_urls():
+    updated = False
+    for name, url in PRODUCT_IMAGE_URL_FIXES.items():
+        product = Product.query.filter_by(name=name).first()
+        if product and product.image_url != url:
+            product.image_url = url
+            updated = True
+    if updated:
+        db.session.commit()

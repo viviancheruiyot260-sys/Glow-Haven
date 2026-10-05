@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import ProductCard from "../components/ProductCard";
 
 export default function Products() {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(searchParams.get("category") || "");
   const [sort, setSort] = useState("newest");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -19,6 +21,11 @@ export default function Products() {
       })
       .catch((err) => setError(err.message));
   }, [search, category, sort]);
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("category") || "";
+    if (fromUrl !== category) setCategory(fromUrl);
+  }, [searchParams]);
 
   useEffect(() => {
     loadProducts();

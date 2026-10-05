@@ -2,6 +2,8 @@
 
 > Your beauty. Your glow.
 
+**Repo layout:** All app code lives at the **repository root** (`backend/`, `frontend/`, etc.) — not in a nested `Glow-Haven/` folder. Clone once, `cd` into the repo, then follow the steps below.
+
 Glow Haven is a modern, responsive beauty e-commerce website where customers can browse and purchase skincare, makeup, haircare, fragrances, and beauty accessories.
 
 ## Features

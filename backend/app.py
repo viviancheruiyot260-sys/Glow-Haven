@@ -54,7 +54,7 @@ from routes.payments import payments_bp  # noqa: E402
 
 from routes.products import products_bp  # noqa: E402
 
-from seed_data import seed_products_if_empty  # noqa: E402
+from seed_data import seed_products_if_empty, sync_product_image_urls  # noqa: E402
 
 
 
@@ -191,6 +191,7 @@ def create_app():
         db.create_all()
 
         seed_products_if_empty()
+        sync_product_image_urls()
 
 
 
